@@ -6,52 +6,46 @@ import urllib
 import urlparse
 from datetime import datetime
 from bs4 import BeautifulSoup
-
+import requests
 # Set up variables
 entity_id = "E5018_LLBC_gov"
 url = "http://www.lewisham.gov.uk/mayorandcouncil/aboutthecouncil/finances/council-spending-over-250/Pages/default.aspx"
 
 # Set up functions
 def convert_mth_strings ( mth_string ):
-	month_numbers = {'JAN': '01', 'FEB': '02', 'MAR':'03', 'APR':'04', 'MAY':'05', 'JUN':'06', 'JUL':'07', 'AUG':'08', 'SEP':'09','OCT':'10','NOV':'11','DEC':'12' }
-	#loop through the months in our dictionary
-	for k, v in month_numbers.items():
-		#then replace the word with the number
-		mth_string = mth_string.replace(k, v)
-	return mth_string
+    month_numbers = {'JAN': '01', 'FEB': '02', 'MAR':'03', 'APR':'04', 'MAY':'05', 'JUN':'06', 'JUL':'07', 'AUG':'08', 'SEP':'09','OCT':'10','NOV':'11','DEC':'12' }
+    #loop through the months in our dictionary
+    for k, v in month_numbers.items():
+        #then replace the word with the number
+        mth_string = mth_string.replace(k, v)
+    return mth_string
 
 # pull down the content from the webpage
-html = urllib2.urlopen(url)
-soup = BeautifulSoup(html)
+html = requests.get(url)
+soup = BeautifulSoup(html.text)
 
 # find all entries with the required class
 menuBlock = soup.find('td',{'class':'lbl-styleTableEvenCol-inThisSectionBox'}) # Use the left hand nav for the page links
 pageLinks = menuBlock.findAll('a', href=True)
 
 for pageLink in pageLinks:
-	href = pageLink['href']
-	parsed_link = urlparse.urlsplit(href.encode('utf8'))
-	parsed_link = parsed_link._replace(path=urllib.quote(parsed_link.path))
-	encoded_link = parsed_link.geturl()
-	fullLink = "http://www.lewisham.gov.uk/"+encoded_link
-  	html2 = urllib2.urlopen(fullLink)
-  	soup2 = BeautifulSoup(html2)
-  	
-  	docBlock = soup2.find('div',{'class':'contentContainer documentsList'})
-  	fileLinks = docBlock.findAll('a', href=True)
-  	
-	for fileLink in fileLinks:
-	  	fileUrl = fileLink['href']
-	  	if '.csv' in fileUrl:
-		  	fileUrl = "http://www.lewisham.gov.uk/"+fileUrl
-		  	title = fileLink.contents[0]
-			# create the right strings for the new filename
-			title = title.upper().strip()
-			csvYr = title.split(' ')[1]
-			csvMth = title.split(' ')[0][:3]
-			csvMth = convert_mth_strings(csvMth);
-		
-			filename = entity_id + "_" + csvYr + "_" + csvMth
-			todays_date = str(datetime.now())
-			scraperwiki.sqlite.save(unique_keys=['l'], data={"l": fileUrl, "f": filename, "d": todays_date })
-			print filename
+    href = pageLink['href']
+    fullLink = "http://www.lewisham.gov.uk"+href.encode('utf-8')
+    html2 = requests.get(fullLink)
+    soup2 = BeautifulSoup(html2.text)
+    docBlock = soup2.find('div',{'class':'contentContainer documentsList'})
+    fileLinks = docBlock.findAll('a', href=True)
+    for fileLink in fileLinks:
+        fileUrl = fileLink['href']
+        if '.csv' in fileUrl:
+            fileUrl = "http://www.lewisham.gov.uk/"+fileUrl
+            title = fileLink.contents[0]
+            # create the right strings for the new filename
+            title = title.upper().strip()
+            csvYr = title.split(' ')[1]
+            csvMth = title.split(' ')[0][:3]
+            csvMth = convert_mth_strings(csvMth)
+            filename = entity_id + "_" + csvYr + "_" + csvMth
+            todays_date = str(datetime.now())
+            scraperwiki.sqlite.save(unique_keys=['l'], data={"l": fileUrl, "f": filename, "d": todays_date })
+            print filename
