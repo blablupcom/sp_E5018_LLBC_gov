@@ -33,7 +33,7 @@ for pageLink in pageLinks:
 	#parsed_link = urlparse.urlsplit(href.encode('utf8'))
 	#parsed_link = parsed_link._replace(path=urllib.quote(parsed_link.path))
 	#encoded_link = parsed_link.geturl()
-	fullLink = "http://www.lewisham.gov.uk/"+href
+	fullLink = "http://www.lewisham.gov.uk/"+href.encode('utf-8')
   	html2 = urllib2.urlopen(fullLink)
   	soup2 = BeautifulSoup(html2)
   	
@@ -43,7 +43,7 @@ for pageLink in pageLinks:
 	for fileLink in fileLinks:
 	  	fileUrl = fileLink['href']
 	  	if '.csv' in fileUrl:
-		  	fileUrl = "http://www.lewisham.gov.uk/"+fileUrl
+		  	fileUrl = "http://www.lewisham.gov.uk/"+fileUrl.encode('utf-8')
 		  	title = fileLink.contents[0]
 			# create the right strings for the new filename
 			title = title.upper().strip()
