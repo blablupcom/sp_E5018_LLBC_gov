@@ -44,6 +44,7 @@ for pageLink in pageLinks:
 	  	fileUrl = fileLink['href']
 	  	if '.csv' in fileUrl:
 		  	fileUrl = "http://www.lewisham.gov.uk/"+fileUrl.encode('utf-8')
+		  	print fileUrl
 		  	title = fileLink.contents[0]
 			# create the right strings for the new filename
 			title = title.upper().strip()
